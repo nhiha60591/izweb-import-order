@@ -51,7 +51,7 @@ class IZWEB_Import_Export{
     public function frontend_script(){
 
     }
-    public function izw_process_import_order(){
+    public function izw_process_export_order(){
         $folder =  __IZWIEPATH__."/exports";
         $args = array(
             'post_type' => 'shop_order',
@@ -63,25 +63,65 @@ class IZWEB_Import_Export{
 
         // The Loop
         $csv_string = '';
-        $number = '12345';
+        $number = $this->izw_import_settings['order_number'] ? $this->izw_import_settings['order_number'] : '12345';
         if ( $the_query->have_posts() ) {
+            $total = 0;
             while ( $the_query->have_posts() ) {
-                $product = new WC_Product( get_the_ID() );
+                global $post;
+                $user = new WP_User( $post->post_author );
+                $order = new WC_Order( get_the_ID() );
                 $the_query->the_post();
-                $csv_string .= '"ARTICLE"';
-                $csv_string .= ';"'.$number.'"';
-                $csv_string .= ';"EAN1234567890123"';
-                $csv_string .= ";\"{$product->get_sku()}\"";
-                $csv_string .= ";\"".get_the_ID()."\"";
-                $csv_string .= ";\"".$product->get_total_stock()."\"";
-                $csv_string .= ";\"".get_the_title()."\"\n";
+
+                // Customer
+                $csv_string .= '"CUSTOMER"';
+                $csv_string .= ',"'.$number.'"';
+                $csv_string .= ',"'.$post->post_author.'"';
+                $csv_string .= ",\"{$user->display_name}\"";
+                $csv_string .= ",\"".$user->last_name."\"";
+                $csv_string .= ",\"".get_user_meta( $post->post_author, 'billing_address_1', true )."\"";
+                $csv_string .= ",\"".WC()->countries->countries[ get_user_meta( $post->post_author, 'billing_country', true ) ]."\"";
+                $csv_string .= ",\"".$user->user_email."\"\n";
+
+                // Pick list
+                $csv_string .= 'PICKLIST';
+                $csv_string .= ',"'.$number.'"';
+                $csv_string .= ',"'.$user->ID.'"';
+                $csv_string .= ',"'.get_the_ID().'"';
+                $csv_string .= ',""';
+                $csv_string .= ',""';
+                $csv_string .= ',"'.$order->get_status().'"';
+                $csv_string .= "\n";
+
+                // ADDR
+                $csv_string .= 'ADDR';
+                $csv_string .= ',"'.$number.'"';
+                $csv_string .= ',"'.$user->ID.'"';
+                $csv_string .= ',"'.$user->display_name.'"';
+                $csv_string .= ",\"".get_user_meta( $post->post_author, 'billing_address_1', true )."\"";
+                $csv_string .= ",\"".WC()->countries->countries[ get_user_meta( $post->post_author, 'billing_country', true ) ]."\"";
+                $csv_string .= "\n";
+
+                //ORDER LINES
+                $i=0;
+                foreach( $order->get_items() as $item){
+                    $_product = $order->get_product_from_item($item);
+                    $csv_string .= 'ORDER_LINE';
+                    $csv_string .= ','.get_the_ID();
+                    $csv_string .= ','.$i;
+                    $csv_string .= ','.$_product->id;
+                    $csv_string .= ','.$item['qty'];
+                    $csv_string .= ',1234567890123';
+                    $csv_string .= "\n";
+                    $i++;
+                    $total ++;
+                }
             }
         } else {
             // no posts found
         }
         if( $csv_string != ''){
-            $csv_string .= '"END_OF_FILE";'.$the_query->found_posts;
-            $of = fopen($folder."/Products.csv", "w+");
+            $csv_string .= '"END_OF_FILE";'.$total;
+            $of = fopen($folder."/Orders.csv", "w+");
             fwrite( $of, $csv_string );
             fclose( $of );
         }
@@ -100,7 +140,7 @@ class IZWEB_Import_Export{
 
         // The Loop
         $csv_string = '';
-        $number = '12345';
+        $number = $this->izw_import_settings['product_number'] ? $this->izw_import_settings['product_number'] : '12345';
         if ( $the_query->have_posts() ) {
             while ( $the_query->have_posts() ) {
                 $product = new WC_Product( get_the_ID() );
@@ -126,6 +166,9 @@ class IZWEB_Import_Export{
         wp_reset_postdata();
     }
     public function izw_import_order_settings(){
+        echo "<pre>";
+        print_r( get_user_meta( 1 ) );
+        echo "</pre>";
         include "templates/import-order-settings.php";
     }
     /**

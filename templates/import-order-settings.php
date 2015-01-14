@@ -4,6 +4,12 @@
         if( isset( $_POST['izw-save-import-setting'])){
             update_option('izw_import_export_settings', $_POST );
         }
+        if( isset( $_POST['izw-export-product'])){
+            IZWEB_Import_Export::izw_process_export_product();
+        }
+        if( isset( $_POST['izw-export-order'])){
+            IZWEB_Import_Export::izw_process_export_order();
+        }
         $import_folder = __IZWIEPATH__."imports";
         $export_folder = __IZWIEPATH__."exports";
         $izw_import_data = get_option( 'izw_import_export_settings');
@@ -63,6 +69,8 @@
                 </tbody>
             </table>
             <?php submit_button( 'Save Change', 'primary','izw-save-import-setting'); ?>
+            <?php submit_button( 'Export Product', 'primary','izw-export-product'); ?>
+            <?php submit_button( 'Export Order', 'primary','izw-export-order'); ?>
         </form>
     </div>
 </div><!-- END .wrap -->
