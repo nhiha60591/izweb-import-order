@@ -94,10 +94,10 @@ class IZWEB_Import_Export{
         if ( $the_query->have_posts() ) {
             $total = 0;
             while ( $the_query->have_posts() ) {
+                $the_query->the_post();
                 global $post;
                 $user = new WP_User( $post->post_author );
                 $order = new WC_Order( get_the_ID() );
-                $the_query->the_post();
 
                 // Customer
                 $csv_string .= '"CUSTOMER"';
@@ -140,7 +140,7 @@ class IZWEB_Import_Export{
                     $csv_string .= ',1234567890123';
                     $csv_string .= "\n";
                     $i++;
-                    $total ++;
+                    $total = $total + 1;
                 }
             }
         } else {
