@@ -25,7 +25,7 @@ function get_schedule_time( $slected = 0 ){
     $schedule_event = apply_filters( 'izw_import_export_schedule_time', $schedule_event );
     $option = '';
     foreach( $schedule_event as $row ){
-        $option .= '<option value="'.$row['name'].'" '.selected( $row['name'], $slected ).'>'.$row['title'].'</option>';
+        $option .= '<option value="'.$row['name']."|".$row['interval'].'" '.selected( $row['name'], $slected ).'>'.$row['title'].'</option>';
     }
     return $option;
 }

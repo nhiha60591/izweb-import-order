@@ -3,6 +3,8 @@
     <?php
         if( isset( $_POST['izw-save-import-setting'])){
             update_option('izw_import_export_settings', $_POST );
+            do_action( 'izw_exip_uninstall' );
+            do_action( 'izw_exip_install' );
         }
         if( isset( $_POST['izw-export-product'])){
             IZWEB_Import_Export::izw_process_export_product();
