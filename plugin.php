@@ -16,6 +16,7 @@ if( !class_exists( 'IZWEB_Import_Export' ) ):
 class IZWEB_Import_Export{
 
     public $izw_import_settings = array();
+    public $ftp_connect, $login_result;
 
     function __construct(){
         $this->izw_import_settings = get_option( 'izw_import_export_settings' );
@@ -73,6 +74,11 @@ class IZWEB_Import_Export{
      */
     public function frontend_script(){
 
+    }
+    function connect_to_ftp_server(){
+        $this->ftp_connect = ftp_connect( $this->izw_import_settings['ftp_server'], $this->izw_import_settings['ftp_port'] );
+        $this->login_result = ftp_login($this->ftp_connect, $this->izw_import_settings['ftp_username'], $this->izw_import_settings['ftp_password']);
+        ftp_pasv( $this->ftp_connect, true );
     }
 
     /**
@@ -148,9 +154,14 @@ class IZWEB_Import_Export{
         }
         if( $csv_string != ''){
             $csv_string .= '"END_OF_FILE";'.$total;
-            $of = fopen($folder."/Orders.csv", "w+");
-            fwrite( $of, $csv_string );
-            fclose( $of );
+            $tempHandle = fopen('php://temp', 'r+');
+            fwrite($tempHandle, $csv_string);
+            rewind($tempHandle);
+            $this->connect_to_ftp_server();
+
+            ftp_fput($this->ftp_connect, $this->izw_import_settings['export_folder']."/Orders.csv", $tempHandle, FTP_ASCII );
+            ftp_close($this->ftp_connect);
+            fclose( $tempHandle );
         }
         /* Restore original Post Data */
         wp_reset_postdata();
@@ -189,9 +200,14 @@ class IZWEB_Import_Export{
         }
         if( $csv_string != ''){
             $csv_string .= '"END_OF_FILE";'.$the_query->found_posts;
-            $of = fopen($folder."/Products.csv", "w+");
-            fwrite( $of, $csv_string );
-            fclose( $of );
+            $tempHandle = fopen('php://temp', 'r+');
+            fwrite($tempHandle, $csv_string);
+            rewind($tempHandle);
+            $this->connect_to_ftp_server();
+
+            ftp_fput($this->ftp_connect, $this->izw_import_settings['export_folder']."/Products.csv", $tempHandle, FTP_ASCII );
+            ftp_close($this->ftp_connect);
+            fclose( $tempHandle );
         }
         /* Restore original Post Data */
         wp_reset_postdata();

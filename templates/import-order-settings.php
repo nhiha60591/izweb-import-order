@@ -16,6 +16,11 @@
         $export_folder = __IZWIEPATH__."exports";
         $izw_import_data = get_option( 'izw_import_export_settings');
         $data = array(
+            'ftp_server' => !(empty( $izw_import_data['ftp_server'] ) ) ? $izw_import_data['ftp_server'] : '',
+            'ftp_username' => !(empty( $izw_import_data['ftp_username'] ) ) ? $izw_import_data['ftp_username'] : '',
+            'ftp_password' => !(empty( $izw_import_data['ftp_password'] ) ) ? $izw_import_data['ftp_password'] : '',
+            'ftp_port' => !(empty( $izw_import_data['ftp_port'] ) ) ? $izw_import_data['ftp_port'] : '21',
+
             'import_folder' => !(empty( $izw_import_data['import_folder'] ) ) ? $izw_import_data['import_folder'] : $import_folder,
             'export_folder' => !(empty( $izw_import_data['export_folder'] ) ) ? $izw_import_data['export_folder'] : $export_folder,
             'import_time' => !(empty( $izw_import_data['import_time'] ) ) ? $izw_import_data['import_time'] : '',
@@ -28,6 +33,36 @@
         <form name="" action="" method="post">
             <table class="form-table">
                 <tbody>
+                    <tr>
+                        <th scope="row" colspan="2"><h3>FTP information</h3></th>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="ftp_server">FTP Server</label></th>
+                        <td>
+                            <input class="regular-text" id="ftp_server" name="ftp_server" value="<?php echo $data['ftp_server']; ?>" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="ftp_username">FTP Username</label></th>
+                        <td>
+                            <input class="regular-text" id="ftp_username" name="ftp_username" value="<?php echo $data['ftp_username']; ?>" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="ftp_password">FTP Password</label></th>
+                        <td>
+                            <input type="password" class="regular-text" id="ftp_password" name="ftp_password" value="<?php echo $data['ftp_password']; ?>" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="ftp_port">FTP & explicit FTPS port</label></th>
+                        <td>
+                            <input class="regular-text" id="ftp_port" name="ftp_port" value="<?php echo $data['ftp_port']; ?>" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row" colspan="2"><h3>Import/Export Informations</h3></th>
+                    </tr>
                     <tr>
                         <th scope="row"><label for="import_folder">Import Form Folder</label></th>
                         <td>
