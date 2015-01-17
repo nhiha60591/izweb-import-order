@@ -102,6 +102,8 @@ class IZWEB_Import_Export{
             while ( $the_query->have_posts() ) {
                 $the_query->the_post();
                 global $post;
+                $exported = get_post_meta( get_the_ID(), 'exported', true );
+                if( $exported ){continue;}else{update_post_meta( get_the_ID(), 'exported', 'true');}
                 $user = new WP_User( $post->post_author );
                 $order = new WC_Order( get_the_ID() );
 
@@ -185,8 +187,10 @@ class IZWEB_Import_Export{
         $number = $this->izw_import_settings['product_number'] ? $this->izw_import_settings['product_number'] : '12345';
         if ( $the_query->have_posts() ) {
             while ( $the_query->have_posts() ) {
-                $product = new WC_Product( get_the_ID() );
                 $the_query->the_post();
+                $exported = get_post_meta( get_the_ID(), 'exported', true );
+                if( $exported ){continue;}else{update_post_meta( get_the_ID(), 'exported', 'true');}
+                $product = new WC_Product( get_the_ID() );
                 $csv_string .= '"ARTICLE"';
                 $csv_string .= ';"'.$number.'"';
                 $csv_string .= ';"EAN1234567890123"';
