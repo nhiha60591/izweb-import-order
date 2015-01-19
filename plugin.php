@@ -23,8 +23,13 @@ class IZWEB_Import_Export{
 
         register_activation_hook( __FILE__, array( $this, 'izw_activation' ) );
         register_deactivation_hook( __FILE__, array( $this, 'izw_deactivation' ) );
+
         add_action( 'izw_export_order', array( $this, 'izw_process_export_order' ) );
         add_action( 'izw_export_product', array( $this, 'izw_process_export_product' ) );
+
+        add_action( 'izw_import_order', array( $this, 'izw_process_import_order' ) );
+        add_action( 'izw_import_product', array( $this, 'izw_process_import_product' ) );
+
         add_action( 'izw_exip_install', array( $this, 'install_schedule_event' ) );
         add_action( 'izw_exip_uninstall', array( $this, 'uninstall_schedule_event' ) );
         add_action( 'init', array( $this, 'init') );
@@ -33,7 +38,7 @@ class IZWEB_Import_Export{
     }
 
     /**
-     *
+     * Defines
      */
     public function defines(){
         define( '__TEXTDOMAIN__', 'izweb-import-order' );
@@ -42,39 +47,43 @@ class IZWEB_Import_Export{
     }
 
     /**
-     *
+     * Include files
      */
     public function includes(){
         require_once ( "functions.php" );
     }
 
     /**
-     *
+     * Set init function
      */
     public function init(){
         add_action( 'admin_menu',  array( $this, 'admin_menu') );
     }
 
     /**
-     *
+     * Add Admin menu
      */
     public function admin_menu(){
         add_menu_page( 'WC Import/Export', 'Import/Export', 'manage_options', 'wc-import-export', array( $this, 'izw_import_order_settings' ) );
     }
 
     /**
-     *
+     * Back-end Scripts
      */
     public function backend_script(){
 
     }
 
     /**
-     *
+     * Front-End Scripts
      */
     public function frontend_script(){
 
     }
+
+    /**
+     * Connect to FTP information
+     */
     function connect_to_ftp_server(){
         $this->ftp_connect = ftp_connect( $this->izw_import_settings['ftp_server'], $this->izw_import_settings['ftp_port'] );
         $this->login_result = ftp_login($this->ftp_connect, $this->izw_import_settings['ftp_username'], $this->izw_import_settings['ftp_password']);
@@ -82,7 +91,28 @@ class IZWEB_Import_Export{
     }
 
     /**
+     * Get file contents from FTP
      *
+     * @param string $filename
+     * @return array
+     */
+    function izw_get_file_content( $filename = 'Orders.csv' ){
+        $this->connect_to_ftp_server();
+        //Create temp handler:
+        $tempHandle = fopen('php://temp', 'r+');
+
+        //Get file from FTP assuming that it exists:
+        ftp_fget($this->ftp_connect, $tempHandle, $this->izw_import_settings['import_folder']."/".$filename, FTP_ASCII, 0 );
+        rewind($tempHandle);
+        $string = array();
+        while(! feof($tempHandle)){
+            $string[] = fgetcsv($tempHandle,null, ";");
+        }
+        return $string;
+    }
+
+    /**
+     * Process Export Order
      */
     public function izw_process_export_order(){
         $folder =  __IZWIEPATH__."/exports";
@@ -103,7 +133,7 @@ class IZWEB_Import_Export{
                 $the_query->the_post();
                 global $post;
                 $exported = get_post_meta( get_the_ID(), 'exported', true );
-                if( $exported ){continue;}else{update_post_meta( get_the_ID(), 'exported', 'true');}
+                //if( $exported ){continue;}else{update_post_meta( get_the_ID(), 'exported', 'true');}
                 $user = new WP_User( $post->post_author );
                 $order = new WC_Order( get_the_ID() );
 
@@ -170,7 +200,7 @@ class IZWEB_Import_Export{
     }
 
     /**
-     *
+     * Process Export Products
      */
     public function izw_process_export_product(){
         $folder =  __IZWIEPATH__."/exports";
@@ -218,14 +248,41 @@ class IZWEB_Import_Export{
     }
 
     /**
-     *
+     * Load Import Order Settings
      */
     public function izw_import_order_settings(){
         include "templates/import-order-settings.php";
     }
 
     /**
-     *
+     * Process Import Orders
+     */
+    public function izw_process_import_order(){
+        $array = $this->izw_get_file_content('import-order.csv');
+        if( is_array( $array ) && sizeof( $array ) > 0){
+            foreach( $array as $item){
+                if( sizeof( $item )<3 ) continue;
+                $order = new WC_Order( $item[3] );
+                $order->add_order_note( 'Tracking Number:'. $item[6] );
+                $order->update_status( $item[5] );
+            }
+        }
+    }
+
+    /**
+     * Process Import Products
+     */
+    public function izw_process_import_product(){
+        $array = $this->izw_get_file_content('stock-update.csv');
+        if( is_array( $array ) && sizeof( $array ) > 0){
+            foreach( $array as $item){
+                update_post_meta( $item[2], '_stock', $item[3] );
+            }
+        }
+    }
+
+    /**
+     * Set Schedule event
      */
     public function install_schedule_event(){
         $time_schedule = get_option( 'izw_import_export_settings' );
@@ -234,14 +291,22 @@ class IZWEB_Import_Export{
             wp_schedule_event(time(), $timeEP[0], 'izw_export_order');
             wp_schedule_event(time(), $timeEP[0], 'izw_export_product');
         }
+
+        if( !empty( $time_schedule['import_time'] ) ) {
+            $timeIP = explode( "|", $time_schedule['import_time'] );
+            wp_schedule_event(time(), $timeIP[0], 'izw_import_order');
+            wp_schedule_event(time(), $timeIP[0], 'izw_import_product');
+        }
     }
 
     /**
-     *
+     * Clear All Schedule Event
      */
     public function uninstall_schedule_event(){
         wp_clear_scheduled_hook( 'izw_export_order' );
         wp_clear_scheduled_hook( 'izw_export_product' );
+        wp_clear_scheduled_hook( 'izw_import_order' );
+        wp_clear_scheduled_hook( 'izw_import_product' );
     }
     /**
      * On activation, set a time, frequency and name of an action hook to be scheduled.

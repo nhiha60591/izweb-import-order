@@ -3,6 +3,7 @@
     <?php
         if( isset( $_POST['izw-save-import-setting'])){
             update_option('izw_import_export_settings', $_POST );
+            do_action( 'izw_update_setting_fields');
             do_action( 'izw_exip_uninstall' );
             do_action( 'izw_exip_install' );
         }
@@ -28,11 +29,13 @@
             'product_number' => !(empty( $izw_import_data['product_number'] ) ) ? $izw_import_data['product_number'] : '12345',
             'order_number' => !(empty( $izw_import_data['order_number'] ) ) ? $izw_import_data['order_number'] : '12345',
         );
+        $data = apply_filters( 'izw_field_settings', $data );
     ?>
     <div class="izw-import-order-settings">
         <form name="" action="" method="post">
             <table class="form-table">
                 <tbody>
+                    <?php do_action( 'izw_before_field_settings'); ?>
                     <tr>
                         <th scope="row" colspan="2"><h3>FTP information</h3></th>
                     </tr>
@@ -103,6 +106,7 @@
                             <input type="text" name="order_number" value="<?php echo $data['order_number'] ; ?>" />
                         </td>
                     </tr>
+                    <?php do_action( 'izw_after_field_settings'); ?>
                 </tbody>
             </table>
             <?php submit_button( 'Save Change', 'primary','izw-save-import-setting'); ?>
