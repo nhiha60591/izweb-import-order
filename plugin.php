@@ -132,8 +132,8 @@ class IZWEB_Import_Export{
             while ( $the_query->have_posts() ) {
                 $the_query->the_post();
                 global $post;
-                $exported = get_post_meta( get_the_ID(), '_exported', true );
-                if( $exported ){continue;}else{update_post_meta( get_the_ID(), '_exported', 'true');}
+                $exported = get_post_meta( get_the_ID(), 'izw_exported', true );
+                if( $exported ){continue;}else{update_post_meta( get_the_ID(), 'izw_exported', 'true');}
                 $user = new WP_User( $post->post_author );
                 $order = new WC_Order( get_the_ID() );
                 $first_name = get_post_meta( get_the_ID(), '_billing_first_name', true );
@@ -219,8 +219,8 @@ class IZWEB_Import_Export{
         if ( $the_query->have_posts() ) {
             while ( $the_query->have_posts() ) {
                 $the_query->the_post();
-                $exported = get_post_meta( get_the_ID(), '_exported', true );
-                if( $exported ){continue;}else{update_post_meta( get_the_ID(), '_exported', 'true');}
+                $exported = get_post_meta( get_the_ID(), 'izw_exported', true );
+                if( $exported ){continue;}else{update_post_meta( get_the_ID(), 'izw_exported', 'true');}
                 $product = new WC_Product( get_the_ID() );
                 $csv_string .= '"ARTICLE"';
                 $csv_string .= ';"'.$number.'"';
