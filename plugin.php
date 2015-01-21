@@ -132,19 +132,20 @@ class IZWEB_Import_Export{
             while ( $the_query->have_posts() ) {
                 $the_query->the_post();
                 global $post;
-                $exported = get_post_meta( get_the_ID(), 'exported', true );
-                if( $exported ){continue;}else{update_post_meta( get_the_ID(), 'exported', 'true');}
+                $exported = get_post_meta( get_the_ID(), '_exported', true );
+                if( $exported ){continue;}else{update_post_meta( get_the_ID(), '_exported', 'true');}
                 $user = new WP_User( $post->post_author );
                 $order = new WC_Order( get_the_ID() );
-
+                $first_name = get_post_meta( get_the_ID(), '_billing_first_name', true );
+                $last_name = get_post_meta( get_the_ID(), '_billing_last_name', true );
                 // Customer
                 $csv_string .= '"CUSTOMER"';
                 $csv_string .= ',"'.$number.'"';
                 $csv_string .= ',"'.$post->post_author.'"';
-                $csv_string .= ",\"{$user->display_name}\"";
-                $csv_string .= ",\"".$user->last_name."\"";
-                $csv_string .= ",\"".get_user_meta( $post->post_author, 'billing_address_1', true )."\"";
-                $csv_string .= ",\"".WC()->countries->countries[ get_user_meta( $post->post_author, 'billing_country', true ) ]."\"";
+                $csv_string .= ",\"{$first_name}\"";
+                $csv_string .= ",\"".$last_name."\"";
+                $csv_string .= ",\"".get_post_meta( get_the_ID(), '_billing_address_1', true )."\"";
+                $csv_string .= ",\"".WC()->countries->countries[ get_post_meta( get_the_ID(), 'billing_country', true ) ]."\"";
                 $csv_string .= ",\"".$user->user_email."\"\n";
 
                 // Pick list
@@ -218,8 +219,8 @@ class IZWEB_Import_Export{
         if ( $the_query->have_posts() ) {
             while ( $the_query->have_posts() ) {
                 $the_query->the_post();
-                $exported = get_post_meta( get_the_ID(), 'exported', true );
-                if( $exported ){continue;}else{update_post_meta( get_the_ID(), 'exported', 'true');}
+                $exported = get_post_meta( get_the_ID(), '_exported', true );
+                if( $exported ){continue;}else{update_post_meta( get_the_ID(), '_exported', 'true');}
                 $product = new WC_Product( get_the_ID() );
                 $csv_string .= '"ARTICLE"';
                 $csv_string .= ';"'.$number.'"';
@@ -263,8 +264,8 @@ class IZWEB_Import_Export{
             foreach( $array as $item){
                 if( sizeof( $item )<3 ) continue;
                 $order = new WC_Order( $item[3] );
-                $order->add_order_note( 'Tracking Number:'. $item[6] );
-                $order->update_status( $item[5] );
+                $order->add_order_note( 'Tracking Number:'. $item[5] );
+                $order->update_status( $item[4] );
             }
         }
     }
