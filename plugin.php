@@ -220,8 +220,6 @@ class IZWEB_Import_Export{
         if ( $the_query->have_posts() ) {
             while ( $the_query->have_posts() ) {
                 $the_query->the_post();
-                $exported = get_post_meta( get_the_ID(), 'izw_exported', true );
-                if( $exported ){continue;}else{update_post_meta( get_the_ID(), 'izw_exported', 'true');}
                 $product = new WC_Product( get_the_ID() );
                 $csv_string .= '"ARTICLE"';
                 $csv_string .= ';"'.$number.'"';
@@ -261,11 +259,11 @@ class IZWEB_Import_Export{
      * Process Import Orders
      */
     public function izw_process_import_order(){
-        $array = $this->izw_get_file_content('import-order.csv');
+        $array = $this->izw_get_file_content('import-orders.csv');
         if( is_array( $array ) && sizeof( $array ) > 0){
             foreach( $array as $item){
                 if( sizeof( $item )<3 ) continue;
-                $order = new WC_Order( $item[3] );
+                $order = new WC_Order( preg_replace("/[^0-9]/","", $item[3] ) );
                 $order->add_order_note( 'Tracking Number:'. $item[5] );
                 $order->update_status( $item[4] );
             }
@@ -279,7 +277,7 @@ class IZWEB_Import_Export{
         $array = $this->izw_get_file_content('stock-update.csv');
         if( is_array( $array ) && sizeof( $array ) > 0){
             foreach( $array as $item){
-                update_post_meta( $item[2], '_stock', $item[3] );
+                update_post_meta( preg_replace("/[^0-9]/","", $item[2] ), '_stock', preg_replace("/[^0-9]/","", $item[3] ) );
             }
         }
     }

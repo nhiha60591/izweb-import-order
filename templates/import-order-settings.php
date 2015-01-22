@@ -13,6 +13,13 @@
         if( isset( $_POST['izw-export-order'])){
             IZWEB_Import_Export::izw_process_export_order();
         }
+
+        if( isset( $_POST['izw-update-product'])){
+            IZWEB_Import_Export::izw_process_import_product();
+        }
+        if( isset( $_POST['izw-update-order'])){
+            IZWEB_Import_Export::izw_process_import_order();
+        }
         $import_folder = __IZWIEPATH__."imports";
         $export_folder = __IZWIEPATH__."exports";
         $izw_import_data = get_option( 'izw_import_export_settings');
@@ -110,8 +117,13 @@
                 </tbody>
             </table>
             <?php submit_button( 'Save Change', 'primary','izw-save-import-setting'); ?>
-            <?php submit_button( 'Export Product', 'primary','izw-export-product'); ?>
-            <?php submit_button( 'Export Order', 'primary','izw-export-order'); ?>
+            <h2>Button To Test</h2>
+            <p class="submit">
+                <input type="submit" name="izw-export-product" id="izw-export-product" class="button button-primary" value="Export Product">
+                <input type="submit" name="izw-export-order" id="izw-export-order" class="button button-primary" value="Export Order">
+                <input type="submit" name="izw-update-product" id="izw-update-product" class="button button-primary" value="Update Product">
+                <input type="submit" name="izw-update-order" id="izw-update-order" class="button button-primary" value="Update Order">
+            </p>
         </form>
     </div>
 </div><!-- END .wrap -->
