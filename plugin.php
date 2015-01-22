@@ -108,6 +108,7 @@ class IZWEB_Import_Export{
         while(! feof($tempHandle)){
             $string[] = fgetcsv($tempHandle,null, ";");
         }
+        ftp_close( $this->ftp_connect );
         return $string;
     }
 
@@ -240,8 +241,8 @@ class IZWEB_Import_Export{
             rewind($tempHandle);
             $this->connect_to_ftp_server();
 
-            ftp_fput($this->ftp_connect, $this->izw_import_settings['export_folder']."/Products.csv", $tempHandle, FTP_ASCII );
-            ftp_close($this->ftp_connect);
+            ftp_fput( $this->ftp_connect, $this->izw_import_settings['export_folder']."/Products.csv", $tempHandle, FTP_ASCII );
+            ftp_close( $this->ftp_connect);
             fclose( $tempHandle );
         }
         /* Restore original Post Data */
@@ -259,27 +260,42 @@ class IZWEB_Import_Export{
      * Process Import Orders
      */
     public function izw_process_import_order(){
-        $array = $this->izw_get_file_content('import-orders.csv');
+        $path = plugin_dir_path( __FILE__ );
+        $filename = "import-orders.csv";
+        $newfilename = 'import-orders-'.date('Y-m-d_H-i-s').'.csv';
+        $array = $this->izw_get_file_content($filename);
         if( is_array( $array ) && sizeof( $array ) > 0){
             foreach( $array as $item){
                 if( sizeof( $item )<3 ) continue;
                 $order = new WC_Order( preg_replace("/[^0-9]/","", $item[3] ) );
                 $order->add_order_note( 'Tracking Number:'. $item[5] );
-                $order->update_status( $item[4] );
+                $order->update_status( strtolower( $item[4] ) );
             }
         }
+        $this->connect_to_ftp_server();
+        ftp_get( $this->ftp_connect, $path.'imported/'.$newfilename, $this->izw_import_settings['import_folder'].$filename, FTP_BINARY );
+        ftp_delete( $this->ftp_connect, $this->izw_import_settings['import_folder'].$filename );
+        ftp_close( $this->ftp_connect );
+
     }
 
     /**
      * Process Import Products
      */
     public function izw_process_import_product(){
-        $array = $this->izw_get_file_content('stock-update.csv');
+        $path = plugin_dir_path( __FILE__ );
+        $filename = "stock-update.csv";
+        $newfilename = 'stock-update-'.date('Y-m-d_H-i-s').'.csv';
+        $array = $this->izw_get_file_content($filename);
         if( is_array( $array ) && sizeof( $array ) > 0){
             foreach( $array as $item){
                 update_post_meta( preg_replace("/[^0-9]/","", $item[2] ), '_stock', preg_replace("/[^0-9]/","", $item[3] ) );
             }
         }
+        $this->connect_to_ftp_server();
+        ftp_get( $this->ftp_connect, $path.'imported/'.$newfilename, $this->izw_import_settings['import_folder'].$filename, FTP_BINARY );
+        ftp_delete( $this->ftp_connect, $this->izw_import_settings['import_folder'].$filename );
+        ftp_close( $this->ftp_connect );
     }
 
     /**
