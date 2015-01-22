@@ -215,6 +215,7 @@ class IZWEB_Import_Export{
 
         // The Loop
         $csv_string = '';
+        $total = 0;
         $number = $this->izw_import_settings['product_number'] ? $this->izw_import_settings['product_number'] : '12345';
         if ( $the_query->have_posts() ) {
             while ( $the_query->have_posts() ) {
@@ -229,12 +230,13 @@ class IZWEB_Import_Export{
                 $csv_string .= ";\"".get_the_ID()."\"";
                 $csv_string .= ";\"".$product->get_total_stock()."\"";
                 $csv_string .= ";\"".get_the_title()."\"\n";
+                $total++;
             }
         } else {
             // no posts found
         }
         if( $csv_string != ''){
-            $csv_string .= '"END_OF_FILE";'.$the_query->found_posts;
+            $csv_string .= '"END_OF_FILE";'.$total;
             $tempHandle = fopen('php://temp', 'r+');
             fwrite($tempHandle, $csv_string);
             rewind($tempHandle);
