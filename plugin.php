@@ -116,7 +116,6 @@ class IZWEB_Import_Export{
      * Process Export Order
      */
     public function izw_process_export_order(){
-        $folder =  __IZWIEPATH__."/exports";
         $args = array(
             'post_type' => 'shop_order',
             'posts_per_page' => -1,
@@ -134,7 +133,7 @@ class IZWEB_Import_Export{
                 $the_query->the_post();
                 global $post;
                 $exported = get_post_meta( get_the_ID(), 'izw_exported', true );
-                if( $exported ){continue;}else{update_post_meta( get_the_ID(), 'izw_exported', 'true');}
+                //if( $exported ){continue;}else{update_post_meta( get_the_ID(), 'izw_exported', 'true');}
                 $user = new WP_User( $post->post_author );
                 $order = new WC_Order( get_the_ID() );
                 $first_name = get_post_meta( get_the_ID(), '_billing_first_name', true );
@@ -188,7 +187,8 @@ class IZWEB_Import_Export{
         }
         if( $csv_string != ''){
             $csv_string .= '"END_OF_FILE";'.$total;
-            $tempHandle = fopen('php://temp', 'r+');
+            $filename = 'Orders'.date("Y-m-d_H-i-s").'.csv';
+            $tempHandle = fopen( __IZWIEPATH__.'exported/'.$filename, 'w+');
             fwrite($tempHandle, $csv_string);
             rewind($tempHandle);
             $this->connect_to_ftp_server();
@@ -205,7 +205,6 @@ class IZWEB_Import_Export{
      * Process Export Products
      */
     public function izw_process_export_product(){
-        $folder =  __IZWIEPATH__."/exports";
         $args = array(
             'post_type' => 'product',
             'posts_per_page' => -1,
@@ -236,7 +235,8 @@ class IZWEB_Import_Export{
         }
         if( $csv_string != ''){
             $csv_string .= '"END_OF_FILE";'.$total;
-            $tempHandle = fopen('php://temp', 'r+');
+            $filename = 'Products-'.date("Y-m-d_H-i-s").'.csv';
+            $tempHandle = fopen( __IZWIEPATH__.'exported/'.$filename, 'w+');
             fwrite($tempHandle, $csv_string);
             rewind($tempHandle);
             $this->connect_to_ftp_server();
@@ -260,7 +260,6 @@ class IZWEB_Import_Export{
      * Process Import Orders
      */
     public function izw_process_import_order(){
-        $path = plugin_dir_path( __FILE__ );
         $filename = "import-orders.csv";
         $newfilename = 'import-orders-'.date('Y-m-d_H-i-s').'.csv';
         $array = $this->izw_get_file_content($filename);
@@ -273,7 +272,7 @@ class IZWEB_Import_Export{
             }
         }
         $this->connect_to_ftp_server();
-        ftp_get( $this->ftp_connect, $path.'imported/'.$newfilename, $this->izw_import_settings['import_folder'].$filename, FTP_BINARY );
+        ftp_get( $this->ftp_connect, __IZWIEPATH__.'imported/'.$newfilename, $this->izw_import_settings['import_folder'].$filename, FTP_BINARY );
         ftp_delete( $this->ftp_connect, $this->izw_import_settings['import_folder'].$filename );
         ftp_close( $this->ftp_connect );
 
@@ -283,7 +282,6 @@ class IZWEB_Import_Export{
      * Process Import Products
      */
     public function izw_process_import_product(){
-        $path = plugin_dir_path( __FILE__ );
         $filename = "stock-update.csv";
         $newfilename = 'stock-update-'.date('Y-m-d_H-i-s').'.csv';
         $array = $this->izw_get_file_content($filename);
@@ -293,7 +291,7 @@ class IZWEB_Import_Export{
             }
         }
         $this->connect_to_ftp_server();
-        ftp_get( $this->ftp_connect, $path.'imported/'.$newfilename, $this->izw_import_settings['import_folder'].$filename, FTP_BINARY );
+        ftp_get( $this->ftp_connect, __IZWIEPATH__.'imported/'.$newfilename, $this->izw_import_settings['import_folder'].$filename, FTP_BINARY );
         ftp_delete( $this->ftp_connect, $this->izw_import_settings['import_folder'].$filename );
         ftp_close( $this->ftp_connect );
     }
