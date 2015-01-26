@@ -102,13 +102,15 @@ class IZWEB_Import_Export{
         $tempHandle = fopen('php://temp', 'r+');
 
         //Get file from FTP assuming that it exists:
-        ftp_fget($this->ftp_connect, $tempHandle, $this->izw_import_settings['import_folder']."/".$filename, FTP_ASCII, 0 );
-        rewind($tempHandle);
         $string = array();
-        while(! feof($tempHandle)){
-            $string[] = fgetcsv($tempHandle,null, ";");
+        if( ftp_fget($this->ftp_connect, $tempHandle, $this->izw_import_settings['import_folder']."/".$filename, FTP_ASCII, 0 ) ) {
+            rewind($tempHandle);
+            $string = array();
+            while (!feof($tempHandle)) {
+                $string[] = fgetcsv($tempHandle, null, ";");
+            }
+            ftp_close($this->ftp_connect);
         }
-        ftp_close( $this->ftp_connect );
         return $string;
     }
 
