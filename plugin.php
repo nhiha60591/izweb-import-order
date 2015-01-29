@@ -189,16 +189,16 @@ class IZWEB_Import_Export{
         }
         if( $csv_string != ''){
             $csv_string .= '"END_OF_FILE";'.$total;
-            $filename = 'Orders'.date("Y-m-d_H-i-s").'.csv';
-            $tempHandle = fopen( __IZWIEPATH__.'exported/'.$filename, 'w+');
-            fwrite($tempHandle, $csv_string);
-            rewind($tempHandle);
-            $this->connect_to_ftp_server();
-
-            ftp_fput($this->ftp_connect, $this->izw_import_settings['export_folder']."/Orders.csv", $tempHandle, FTP_ASCII );
-            ftp_close($this->ftp_connect);
-            fclose( $tempHandle );
         }
+        $filename = 'Orders'.date("Y-m-d_H-i-s").'.csv';
+        $tempHandle = fopen( __IZWIEPATH__.'exported/'.$filename, 'w+');
+        fwrite($tempHandle, $csv_string);
+        rewind($tempHandle);
+        $this->connect_to_ftp_server();
+
+        ftp_fput($this->ftp_connect, $this->izw_import_settings['export_folder']."/Orders.csv", $tempHandle, FTP_ASCII );
+        ftp_close($this->ftp_connect);
+        fclose( $tempHandle );
         /* Restore original Post Data */
         wp_reset_postdata();
     }
