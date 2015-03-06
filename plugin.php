@@ -3,7 +3,7 @@
 Plugin Name: Izweb Import Oder
 Plugin URI: https://github.com/nhiha60591/izweb-import-order/
 Description: Import/Export Woocommerce Order
-Version: 1.0.1
+Version: 1.0.2
 Author: Izweb Team
 Author URI: https://github.com/nhiha60591
 Text Domain: izweb-import-order
@@ -121,7 +121,7 @@ class IZWEB_Import_Export{
         $args = array(
             'post_type' => 'shop_order',
             'posts_per_page' => -1,
-            'post_status' => 'publish'
+            'post_status' => 'wc-processing'
         );
         // The Query
         $the_query = new WP_Query( $args );
@@ -135,23 +135,14 @@ class IZWEB_Import_Export{
                 $the_query->the_post();
                 global $post;
                 $exported = get_post_meta( get_the_ID(), 'izw_exported', true );
-                if( $exported ){continue;}else{update_post_meta( get_the_ID(), 'izw_exported', 'true');}
+                //if( $exported ){continue;}else{update_post_meta( get_the_ID(), 'izw_exported', 'true');}
                 $user = new WP_User( $post->post_author );
                 $order = new WC_Order( get_the_ID() );
                 $first_name = get_post_meta( get_the_ID(), '_billing_first_name', true );
                 $last_name = get_post_meta( get_the_ID(), '_billing_last_name', true );
-                // Customer
-                $csv_string .= '"CUSTOMER"';
-                $csv_string .= ',"'.$number.'"';
-                $csv_string .= ',"'.$post->post_author.'"';
-                $csv_string .= ",\"{$first_name}\"";
-                $csv_string .= ",\"".$last_name."\"";
-                $csv_string .= ",\"".get_post_meta( get_the_ID(), '_billing_address_1', true )."\"";
-                $csv_string .= ",\"".WC()->countries->countries[ get_post_meta( get_the_ID(), 'billing_country', true ) ]."\"";
-                $csv_string .= ",\"".$user->user_email."\"\n";
 
                 // Pick list
-                $csv_string .= 'PICKLIST';
+                $csv_string .= '"PICKLIST"';
                 $csv_string .= ',"'.$number.'"';
                 $csv_string .= ',"'.$user->ID.'"';
                 $csv_string .= ',"'.get_the_ID().'"';
@@ -160,10 +151,30 @@ class IZWEB_Import_Export{
                 $csv_string .= ',"'.$order->get_status().'"';
                 $csv_string .= "\n";
 
+
+                // Customer
+                $csv_string .= '"CUSTOMER"';
+                $csv_string .= ',"'.$number.'"';
+                $csv_string .= ',"'.$post->post_author.'"';
+                $csv_string .= ",\"{$first_name}\"";
+                $csv_string .= ",\"".$last_name."\"";
+                $csv_string .= ",\"".get_post_meta( get_the_ID(), '_billing_address_1', true )."\"";
+                $csv_string .= ",\"".get_post_meta( get_the_ID(), '_billing_postcode', true )."\"";
+                $csv_string .= ",\"".get_post_meta( get_the_ID(), '_billing_city', true )."\"";
+                $csv_string .= ",\"".get_post_meta( get_the_ID(), '_billing_country', true )."\"";
+                $csv_string .= ",\"".$user->user_email."\"\n";
+
                 // ADDR
-                $csv_string .= 'ADDR';
+                $csv_string .= '"ADDR"';
                 $csv_string .= ',"'.$number.'"';
                 $csv_string .= ',"'.$user->ID.'"';
+                $csv_string .= ',"'.get_the_ID().'"';
+                $csv_string .= ",\"{$first_name}\"";
+                $csv_string .= ",\"".$last_name."\"";
+                $csv_string .= ",\"".get_post_meta( get_the_ID(), '_billing_address_1', true )."\"";
+                $csv_string .= ",\"".get_post_meta( get_the_ID(), '_billing_postcode', true )."\"";
+                $csv_string .= ",\"".get_post_meta( get_the_ID(), '_billing_city', true )."\"";
+                $csv_string .= ",\"".get_post_meta( get_the_ID(), '_billing_country', true )."\"";
                 $csv_string .= ',"'.$user->display_name.'"';
                 $csv_string .= ",\"".get_user_meta( $post->post_author, 'billing_address_1', true )."\"";
                 $csv_string .= ",\"".WC()->countries->countries[ get_user_meta( $post->post_author, 'billing_country', true ) ]."\"";
@@ -173,12 +184,16 @@ class IZWEB_Import_Export{
                 $i=0;
                 foreach( $order->get_items() as $item){
                     $_product = $order->get_product_from_item($item);
-                    $csv_string .= 'ORDER_LINE';
+                    $include_tax = (float)$item['line_total'] + (float)$item['line_tax'];
+                    $csv_string .= '"ORDER_LINE"';
                     $csv_string .= ','.get_the_ID();
                     $csv_string .= ','.$i;
                     $csv_string .= ','.$_product->id;
                     $csv_string .= ','.$item['qty'];
-                    $csv_string .= ',1234567890123';
+                    //$csv_string .= ',1234567890123';
+                    $csv_string .= ','.$item['line_total'];
+                    $csv_string .= ','.$item['line_tax'];
+                    $csv_string .= ','.$include_tax;
                     $csv_string .= "\n";
                     $i++;
                     $total = $total + 1;
@@ -271,6 +286,7 @@ class IZWEB_Import_Export{
                 $order = new WC_Order( preg_replace("/[^0-9]/","", $item[3] ) );
                 $order->add_order_note( 'Tracking Number:'. $item[5] );
                 $order->update_status( strtolower( $item[4] ) );
+                update_post_meta( $order->id, 'tracking_number', $item[5] );
             }
         }
         $this->connect_to_ftp_server();
