@@ -135,7 +135,7 @@ class IZWEB_Import_Export{
                 $the_query->the_post();
                 global $post;
                 $exported = get_post_meta( get_the_ID(), 'izw_exported', true );
-                //if( $exported ){continue;}else{update_post_meta( get_the_ID(), 'izw_exported', 'true');}
+                if( $exported ){continue;}else{update_post_meta( get_the_ID(), 'izw_exported', 'true');}
                 $user = new WP_User( $post->post_author );
                 $order = new WC_Order( get_the_ID() );
                 $first_name = get_post_meta( get_the_ID(), '_billing_first_name', true );
@@ -156,12 +156,13 @@ class IZWEB_Import_Export{
                 $csv_string .= '"CUSTOMER"';
                 $csv_string .= ',"'.$number.'"';
                 $csv_string .= ',"'.$post->post_author.'"';
+                $csv_string .= ',"'.get_the_ID().'"';
                 $csv_string .= ",\"{$first_name}\"";
                 $csv_string .= ",\"".$last_name."\"";
-                $csv_string .= ",\"".get_post_meta( get_the_ID(), '_billing_address_1', true )."\"";
-                $csv_string .= ",\"".get_post_meta( get_the_ID(), '_billing_postcode', true )."\"";
-                $csv_string .= ",\"".get_post_meta( get_the_ID(), '_billing_city', true )."\"";
-                $csv_string .= ",\"".get_post_meta( get_the_ID(), '_billing_country', true )."\"";
+                $csv_string .= ",\"".get_post_meta( get_the_ID(), '_shipping_address_1', true )."\"";
+                $csv_string .= ",\"".get_post_meta( get_the_ID(), '_shipping_postcode', true )."\"";
+                $csv_string .= ",\"".get_post_meta( get_the_ID(), '_shipping_city', true )."\"";
+                $csv_string .= ",\"".get_post_meta( get_the_ID(), '_shipping_country', true )."\"";
                 $csv_string .= ",\"".$user->user_email."\"\n";
 
                 // ADDR
@@ -175,9 +176,6 @@ class IZWEB_Import_Export{
                 $csv_string .= ",\"".get_post_meta( get_the_ID(), '_billing_postcode', true )."\"";
                 $csv_string .= ",\"".get_post_meta( get_the_ID(), '_billing_city', true )."\"";
                 $csv_string .= ",\"".get_post_meta( get_the_ID(), '_billing_country', true )."\"";
-                $csv_string .= ',"'.$user->display_name.'"';
-                $csv_string .= ",\"".get_user_meta( $post->post_author, 'billing_address_1', true )."\"";
-                $csv_string .= ",\"".WC()->countries->countries[ get_user_meta( $post->post_author, 'billing_country', true ) ]."\"";
                 $csv_string .= "\n";
 
                 //ORDER LINES
@@ -191,6 +189,7 @@ class IZWEB_Import_Export{
                     $csv_string .= ','.$_product->id;
                     $csv_string .= ','.$item['qty'];
                     //$csv_string .= ',1234567890123';
+                    $csv_string .= ','.$_product->get_sku();
                     $csv_string .= ','.$item['line_total'];
                     $csv_string .= ','.$item['line_tax'];
                     $csv_string .= ','.$include_tax;
