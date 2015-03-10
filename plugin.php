@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: Izweb Import Oder
+Plugin Name: WooCommerce CSV Import/Export
 Plugin URI: https://github.com/nhiha60591/izweb-import-order/
 Description: Import/Export Woocommerce Order
 Version: 1.0.2
