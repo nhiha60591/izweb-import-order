@@ -130,11 +130,11 @@ class IZWEB_Import_Export{
         $csv_string = '';
         $number = $this->izw_import_settings['order_number'] ? $this->izw_import_settings['order_number'] : '12345';
         if ( $the_query->have_posts() ) {
-            $total = 0;
+            $total = 1;
             while ( $the_query->have_posts() ) {
                 $the_query->the_post();
                 $exported = get_post_meta( get_the_ID(), 'izw_exported', true );
-                if( $exported ){continue;}else{update_post_meta( get_the_ID(), 'izw_exported', 'true');}
+                //if( $exported ){continue;}else{update_post_meta( get_the_ID(), 'izw_exported', 'true');}
                 $order = new WC_Order( get_the_ID() );
                 $user = new WP_User( $order->get_user_id() );
                 $first_name = get_post_meta( get_the_ID(), '_billing_first_name', true );
@@ -149,6 +149,7 @@ class IZWEB_Import_Export{
                 $csv_string .= ',""';
                 $csv_string .= ',"'.$order->get_status().'"';
                 $csv_string .= "\n";
+                $total++;
 
 
                 // Customer
@@ -163,6 +164,7 @@ class IZWEB_Import_Export{
                 $csv_string .= ",\"".get_post_meta( get_the_ID(), '_shipping_city', true )."\"";
                 $csv_string .= ",\"".get_post_meta( get_the_ID(), '_shipping_country', true )."\"";
                 $csv_string .= ",\"".get_post_meta( get_the_ID(), '_billing_email', true )."\"\n";
+                $total++;
 
                 // ADDR
                 $csv_string .= '"ADDR"';
@@ -176,6 +178,7 @@ class IZWEB_Import_Export{
                 $csv_string .= ",\"".get_post_meta( get_the_ID(), '_billing_city', true )."\"";
                 $csv_string .= ",\"".get_post_meta( get_the_ID(), '_billing_country', true )."\"";
                 $csv_string .= "\n";
+                $total++;
 
                 //ORDER LINES
                 $i=0;
@@ -193,8 +196,8 @@ class IZWEB_Import_Export{
                     $csv_string .= ','.$item['line_tax'];
                     $csv_string .= ','.$include_tax;
                     $csv_string .= "\n";
+                    $total++;
                     $i++;
-                    $total = $total + 1;
                 }
             }
         } else {
@@ -230,7 +233,7 @@ class IZWEB_Import_Export{
 
         // The Loop
         $csv_string = '';
-        $total = 0;
+        $total = 1;
         $number = $this->izw_import_settings['product_number'] ? $this->izw_import_settings['product_number'] : '12345';
         if ( $the_query->have_posts() ) {
             while ( $the_query->have_posts() ) {
