@@ -134,7 +134,7 @@ class IZWEB_Import_Export{
             while ( $the_query->have_posts() ) {
                 $the_query->the_post();
                 $exported = get_post_meta( get_the_ID(), 'izw_exported', true );
-                //if( $exported ){continue;}else{update_post_meta( get_the_ID(), 'izw_exported', 'true');}
+                if( $exported ){continue;}else{update_post_meta( get_the_ID(), 'izw_exported', 'true');}
                 $order = new WC_Order( get_the_ID() );
                 $user = new WP_User( $order->get_user_id() );
                 $first_name = get_post_meta( get_the_ID(), '_billing_first_name', true );
