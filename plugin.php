@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce CSV Import/Export
 Plugin URI: https://github.com/nhiha60591/izweb-import-order/
 Description: Import/Export Woocommerce Order
-Version: 1.0.2
+Version: 1.0.3
 Author: Izweb Team
 Author URI: https://github.com/nhiha60591
 Text Domain: izweb-import-order
@@ -238,7 +238,11 @@ class IZWEB_Import_Export{
         if ( $the_query->have_posts() ) {
             while ( $the_query->have_posts() ) {
                 $the_query->the_post();
-                $product = new WC_Product( get_the_ID() );
+                if( function_exists( 'wc_get_product')){
+                    $product = wc_get_product(get_the_ID());
+                }else {
+                    $product = get_product(get_the_ID());
+                }
                 $csv_string .= '"ARTICLE"';
                 $csv_string .= ';"'.$number.'"';
                 $csv_string .= ';"EAN1234567890123"';
@@ -246,10 +250,39 @@ class IZWEB_Import_Export{
                 $csv_string .= ";\"".get_the_ID()."\"";
                 $csv_string .= ";\"".$product->get_total_stock()."\"";
                 $csv_string .= ";\"".get_the_title()."\"\n";
+                print_r( $product->get_attribute( 'type' ) );
+                if( $product->is_type( 'variable' ) ){
+                    $available_variations = $product->get_available_variations();
+                    foreach ($available_variations as $prod_variation){
+                        if( function_exists( 'wc_get_product')){
+                            $pr = wc_get_product( $prod_variation['variation_id'] );
+                        }else {
+                            $pr = get_product( $prod_variation['variation_id'] );
+                        }
+                        $str = '';
+                        foreach( $prod_variation['attributes'] as $k=>$v){
+                            $size = explode( 'attribute_', $k );
+                            $attr = get_term_by('slug', $v, $size[1]);
+                            if( !empty( $attr->name ) ) {
+                                $str .= " ({$attr->name})";
+                            }else{
+                                $aa = ucfirst( str_replace( "-", " ", $v ) );
+                                $str .= " ({$aa})";
+                            }
+                        }
+                        $csv_string .= '"ARTICLE"';
+                        $csv_string .= ';"'.$number.'"';
+                        $csv_string .= ';"EAN1234567890123"';
+                        $csv_string .= ";\"{$pr->get_sku()}\"";
+                        $csv_string .= ";\"".$prod_variation['variation_id']."\"";
+                        $csv_string .= ";\"".$pr->get_total_stock()."\"";
+                        $csv_string .= ";\"".get_the_title(). "(Var.of #".get_the_ID().")".$str."\"\n";
+                        $total++;
+                    }
+                }
                 $total++;
             }
-        } else {
-            // no posts found
+            wp_reset_postdata();
         }
         if( $csv_string != ''){
             $csv_string .= '"END_OF_FILE";'.$total;
